@@ -13,6 +13,7 @@ class Player(db.Document):
     foot = db.StringField()
     position = db.StringField()
     league = db.StringField()
+    price = db.IntField()
     age = db.IntField()
     height = db.IntField()
     overall = db.IntField()
@@ -47,12 +48,9 @@ class Player(db.Document):
     gk_reflexes = db.IntField()
     
     
-    def to_json(self):
-        return {
-            'name'           : self.name,
-            'foot'           : self.foot,
-            'position'       : self.position,
-            'league'         : self.league,
+    def to_json(self, just_int=False):
+        to_return = {
+            'price'          : self.price,
             'age'            : self.age,
             'height'         : self.height,
             'overall'        : self.overall,
@@ -86,22 +84,46 @@ class Player(db.Document):
             'gk_positioning' : self.gk_positioning,
             'gk_reflexes'    : self.gk_reflexes,
         }
+        
+        if not just_int:
+            string_to_return = {
+                'name'    : self.name,
+                'foot'    : self.foot,
+                'position': self.position,
+                'league'  : self.league,
+            }
+            to_return.update(string_to_return)
+        return to_return
+    
+    
+    def __repr__(self):
+        return '{' + self.name + ', ' + self.foot + ', ' + self.position + ', ' + self.league + ', ' + str(self.price) + ', ' + str(self.age) + ', ' + str(self.height) + ', ' + str(self.overall) + ', ' + str(self.crossing) + ', ' + str(
+            self.finishing) + ', ' + str(self.short_passing) + ', ' + str(self.volleys) + ', ' + str(self.dribbling) + ', ' + str(self.curve) + ', ' + str(self.long_passing) + ', ' + str(self.ball_control) + ', ' + str(
+            self.acceleration) + ', ' + str(self.sprint_speed) + ', ' + str(self.agility) + ', ' + str(self.reactions) + ', ' + str(self.balance) + ', ' + str(self.shot_power) + ', ' + str(self.strength) + ', ' + str(self.long_shots) + ', ' + str(
+            self.aggression) + ', ' + str(self.interceptions) + ', ' + str(self.positioning) + ', ' + str(self.vision) + ', ' + str(self.penalties) + ', ' + str(self.marking) + ', ' + str(self.standing_tackle) + ', ' + str(
+            self.sliding_tackle) + ', ' + str(self.gk_diving) + ', ' + str(self.gk_handling) + ', ' + str(self.gk_kicking) + ', ' + str(self.gk_positioning) + ', ' + str(self.gk_reflexes) + '}'
     
     
     def get_one(self, name):
-        player = Player.objects(name=name)
+        player = Player.objects(name=name).first()
         if player:
-            return player.to_json(), 200
+            return player
         else:
-            return jsonify({"error": " Bad Request"}), 400
+            return None
+    
+    
+    def get_price(self):
+        return self.price
     
     
     def get_all(self, start, end, filters):
         _filters_true = []
-        for key,value in filters.items():
+        for key, value in filters.items():
             if value:
+                if key == "name" or key == "league":
+                    _filters_true.append(key)
+                    continue
                 _filters_true.append('-' + key)
-        print(_filters_true)
         if start and end:
             players = Player.objects.order_by(*_filters_true)[start:end]
         elif start:
@@ -111,14 +133,26 @@ class Player(db.Document):
         else:
             players = Player.objects()
         if players:
-            to_result = {}
-            player_number = 0
+            to_result = []
             for player in players:
-                to_result[player_number] = player.to_json()
-                player_number += 1
-            return jsonify(to_result), 200
+                to_result.append(player.to_json())
+            return jsonify({"players": to_result}), 200
         else:
             return jsonify({"error": " Bad Request"}), 400
+
+
+def set_all_price():
+    players = Player.objects()
+    for player in players:
+        total_point = 0
+        
+        for value in player.to_json(True).values():
+            total_point += int(value)
+        
+        player.price = total_point * 1000
+        player.save()
+    
+    print('Good')
 
 
 def init_all():

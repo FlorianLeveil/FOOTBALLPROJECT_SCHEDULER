@@ -9,8 +9,6 @@ from player.player import Player
 from scheduler import app
 
 
-
-
 @app.route('/player', methods=['GET'])
 def get_one():
     name = request.args.get('name', default=1, type=str)
@@ -22,9 +20,10 @@ def get_all():
     start = request.args.get('start', default=None, type=str)
     end = request.args.get('end', default=None, type=str)
     
-    #FILTERS
+    # FILTERS
     filters = {'name'          : request.args.get('name', default=False, type=bool), 'foot': request.args.get('foot', default=False, type=bool), 'position': request.args.get('position', default=False, type=bool),
-               'league'        : request.args.get('league', default=False, type=bool), 'age': request.args.get('age', default=False, type=bool), 'height': request.args.get('height', default=False, type=bool),
+               'league'        : request.args.get('league', default=False, type=bool), 'price': request.args.get('price', default=False, type=bool), 'age': request.args.get('age', default=False, type=bool),
+               'height'        : request.args.get('height', default=False, type=bool),
                'overall'       : request.args.get('overall', default=False, type=bool), 'crossing': request.args.get('crossing', default=False, type=bool), 'finishing': request.args.get('finishing', default=False, type=bool),
                'short_passing' : request.args.get('short_passing', default=False, type=bool), 'volleys': request.args.get('volleys', default=False, type=bool), 'dribbling': request.args.get('dribbling', default=False, type=bool),
                'curve'         : request.args.get('curve', default=False, type=bool), 'long_passing': request.args.get('long_passing', default=False, type=bool), 'ball_control': request.args.get('ball_control', default=False, type=bool),
@@ -36,5 +35,3 @@ def get_all():
                'sliding_tackle': request.args.get('sliding_tackle', default=False, type=bool), 'gk_diving': request.args.get('gk_diving', default=False, type=bool), 'gk_handling': request.args.get('gk_handling', default=False, type=bool),
                'gk_kicking'    : request.args.get('gk_kicking', default=False, type=bool), 'gk_positioning': request.args.get('gk_positioning', default=False, type=bool), 'gk_reflexes': request.args.get('gk_reflexes', default=False, type=bool)}
     return Player().get_all(int(start), int(end), filters)
-
-
