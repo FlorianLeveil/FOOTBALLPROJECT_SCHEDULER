@@ -1,11 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2013-2019:
-# This file is part of Shinken Enterprise, all rights reserved.
+# Copyright (C) 2013-2021:
+# This file is part of LeveilFlorian Enterprise, all rights reserved.
 from scheduler import db
 from flask import Flask, jsonify, request, json
-import csv
 
 
 class Player(db.Document):
@@ -141,62 +140,7 @@ class Player(db.Document):
             return jsonify({"error": " Bad Request"}), 400
 
 
-def set_all_price():
-    players = Player.objects()
-    for player in players:
-        total_point = 0
-        
-        for value in player.to_json(True).values():
-            total_point += int(value)
-        
-        player.price = total_point * 1000
-        player.save()
-    
-    print('Good')
 
-
-def init_all():
-    with open('/home/idk/Cours/FOOTBALLPROJECT/FOOTBALLPROJECT_SCHEDULER/player/data.csv', newline='') as csvfile:
-        data = csv.reader(csvfile, delimiter=';', quotechar='|')
-        for row in data:
-            player = Player()
-            player.name = row[0]
-            player.foot = row[1]
-            player.position = row[2]
-            player.league = row[3]
-            player.age = int(row[4])
-            player.height = int(row[5])
-            player.overall = int(row[6])
-            player.crossing = int(row[7])
-            player.finishing = int(row[8])
-            player.short_passing = int(row[9])
-            player.volleys = int(row[10])
-            player.dribbling = int(row[11])
-            player.curve = int(row[12])
-            player.long_passing = int(row[13])
-            player.ball_control = int(row[14])
-            player.acceleration = int(row[15])
-            player.sprint_speed = int(row[16])
-            player.agility = int(row[17])
-            player.reactions = int(row[18])
-            player.balance = int(row[19])
-            player.shot_power = int(row[20])
-            player.strength = int(row[21])
-            player.long_shots = int(row[22])
-            player.aggression = int(row[23])
-            player.interceptions = int(row[24])
-            player.positioning = int(row[25])
-            player.vision = int(row[26])
-            player.penalties = int(row[27])
-            player.marking = int(row[28])
-            player.standing_tackle = int(row[29])
-            player.sliding_tackle = int(row[30])
-            player.gk_diving = int(row[31])
-            player.gk_handling = int(row[32])
-            player.gk_kicking = int(row[33])
-            player.gk_positioning = int(row[34])
-            player.gk_reflexes = int(row[35])
-            player.save()
 
 # player.name,
 # player.foot,
