@@ -5,7 +5,6 @@
 # This file is part of LeveilFlorian Enterprise, all rights reserved.
 
 import json
-import operator
 import uuid
 from _datetime import datetime
 
@@ -15,6 +14,9 @@ from passlib.hash import pbkdf2_sha256
 
 from player.player import Player
 from scheduler import db
+
+from operator import itemgetter as i
+from functools import cmp_to_key
 
 
 class User(db.Document):
@@ -83,25 +85,64 @@ class User(db.Document):
                 _filters_true.append(key)
         print(_filters_true)
         if _filters_true:
-            print(self.players)
-            print(self.players.sort(key=operator.attrgetter('name')))
-            return jsonify({"my_players": self.players.sort(key=operator.attrgetter(*_filters_true))}), 200
+            _to_return = multikeysort(self.players, _filters_true)
+            return jsonify({"my_players": _to_return}), 200
         else:
             return jsonify({"my_players": self.players}), 200
-
-
+    
+    
+    def sell_one_player(self):
+        request_json = json.loads(request.data)
+        name_player_to_add = request_json["sell_one_player"]
+        _len_list_player = len(self.players)
+        _index_player = 0
+        _break = False
+        while _index_player <= _len_list_player:
+            if name_player_to_add == self.players[_index_player]['name']:
+                self.money += int(self.players[_index_player]['price'])
+                self.players.pop(_index_player)
+                self.save()
+                _break = True
+                break
+            _index_player += 1
+        if _break:
+            return self._save()
+        else:
+            return jsonify({"error": "Sell One Player Failed"}), 400
 
     def add_one_player(self):
         request_json = json.loads(request.data)
         name_player_to_add = request_json["add_one_player"]
-        print(name_player_to_add)
         player = Player().get_one(name_player_to_add)
         if player:
             if player.get_price() > self.money:
                 return jsonify({"error": "you don't have enough money"}), 400
             else:
-                self.players.append(player)
+                if player.to_json() in self.players:
+                    return jsonify({"error": "You already have this player"}), 400
+                self.players.append(player.to_json())
                 self.money = self.money - player.get_price()
                 return self._save()
         else:
             return jsonify({"error": "Add One Player Failed"}), 400
+
+
+def cmp(x, y):
+    return (x < y) - (x > y)
+
+
+def multikeysort(items, columns):
+    comparers = [
+        ((i(col[1:].strip()), -1) if col.startswith('-') else (i(col.strip()), 1))
+        for col in columns
+    ]
+    
+    
+    def comparer(left, right):
+        comparer_iter = (
+            cmp(fn(left), fn(right)) * mult
+            for fn, mult in comparers
+        )
+        return next((result for result in comparer_iter if result), 0)
+    
+    return sorted(items, key=cmp_to_key(comparer))

@@ -42,6 +42,14 @@ def add_one_player():
     return user.add_one_player()
 
 
+@app.route('/user/sell_one_player', methods=['POST'])
+@jwt_required()
+def sell_one_player():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.sell_one_player()
+
+
 @app.route('/user/get_my_players')
 @jwt_required()
 def get_my_players():
