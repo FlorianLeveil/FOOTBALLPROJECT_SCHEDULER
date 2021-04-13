@@ -69,3 +69,67 @@ def get_my_players():
                'sliding_tackle': request.args.get('sliding_tackle', default=False, type=bool), 'gk_diving': request.args.get('gk_diving', default=False, type=bool), 'gk_handling': request.args.get('gk_handling', default=False, type=bool),
                'gk_kicking'    : request.args.get('gk_kicking', default=False, type=bool), 'gk_positioning': request.args.get('gk_positioning', default=False, type=bool), 'gk_reflexes': request.args.get('gk_reflexes', default=False, type=bool)}
     return user.get_my_players(filters)
+
+
+@app.route('/user/get_friends_list')
+@jwt_required()
+def get_friends_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.get_friends_list()
+
+
+@app.route('/user/get_waiting_friend_list')
+@jwt_required()
+def get_waiting_friend_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.get_waiting_friend_list()
+
+
+@app.route('/user/get_request_friend_list')
+@jwt_required()
+def get_request_friend_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.get_request_friend_list()
+
+@app.route('/user/act_rm_friend_friend_list', methods=['POST'])
+@jwt_required()
+def act_rm_friend_friend_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.act_rm_friend_friend_list()
+
+
+@app.route('/user/act_accept_friend_request_list', methods=['POST'])
+@jwt_required()
+def act_accept_friend_request_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.act_accept_friend_request_list()
+
+
+@app.route('/user/act_refuse_friend_request_list', methods=['POST'])
+@jwt_required()
+def act_refuse_friend_request_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.act_refuse_friend_request_list()
+
+
+@app.route('/user/act_cancel_friend_waiting_list', methods=['POST'])
+@jwt_required()
+def act_cancel_friend_waiting_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.act_cancel_friend_waiting_list()
+
+
+@app.route('/user/act_add_friend_waiting_list', methods=['POST'])
+@jwt_required()
+def act_add_friend_waiting_list():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.act_add_friend_waiting_list()
+

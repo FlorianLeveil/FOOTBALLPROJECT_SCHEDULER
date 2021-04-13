@@ -26,6 +26,8 @@ class User(db.Document):
     pseudo = db.StringField()
     team = db.ListField()
     friends_list = db.ListField()
+    request_friends_list = db.ListField()
+    waiting_friends_list = db.ListField()
     money = db.IntField()
     players = db.ListField()
     date_created = db.DateTimeField(default=datetime.utcnow())
@@ -39,6 +41,8 @@ class User(db.Document):
         self.pseudo = request_json["pseudo"]
         self.team = []
         self.friends_list = []
+        self.request_friends_list = []
+        self.waiting_friends_list = []
         self.money = 600000
         self.players = []
         
@@ -46,18 +50,122 @@ class User(db.Document):
         if User.objects(email=request_json["email"]):
             return jsonify({"error": "Email address already in use"}), 400
         
-        return self._save()
+        return self.do_save()
     
     
-    def _save(self):
+    def do_save(self):
         if self.save():
             return "", 200
         
         return jsonify({"error": "Signup failed"}), 400
     
     
+    def get_friends_list(self):
+        if self.friends_list:
+            return jsonify({"_list": self.friends_list}), 200
+        else:
+            return jsonify({"error": "You don't have any friends"}), 400
+
+    
+    def get_waiting_friend_list(self):
+        if self.waiting_friends_list:
+            return jsonify({"_list": self.waiting_friends_list}), 200
+        else:
+            return jsonify({"error": "You didn't ask for friends"}), 400
+    
+    
+    def get_request_friend_list(self):
+        if self.request_friends_list:
+            return jsonify({"_list": self.request_friends_list}), 200
+        else:
+            return jsonify({"error": "You have no friend request"}), 400
+
+    
+    
+    def act_rm_friend_friend_list(self):
+        request_json = json.loads(request.data)
+        friend_email = request_json["user_email"]
+        _copy_friends_list = self.friends_list.copy()
+        for index, friend in enumerate(_copy_friends_list, start=0):
+            if friend["email"] == friend_email:
+                self.friends_list.pop(index)
+                return self.do_save()
+        return jsonify({"error": "Remove Friend In List Failed"}), 400
+    
+    
+    def act_accept_friend_request_list(self):
+        request_json = json.loads(request.data)
+        friend_email = request_json["user_email"]
+        _friend = self.get_user_by_email(friend_email)
+        _copy_request_friends_list = self.request_friends_list.copy()
+        for index, friend in enumerate(_copy_request_friends_list, start=0):
+            if friend["email"] == friend_email:
+                self.request_friends_list.pop(index)
+                self.friends_list.append({'email' : _friend.email, 'pseudo' : _friend.pseudo})
+                return self.do_save()
+        return jsonify({"error": "Accept Friend Request List Failed"}), 400
+
+    
+    
+    def act_refuse_friend_request_list(self):
+        request_json = json.loads(request.data)
+        friend_email = request_json["user_email"]
+        _copy_request_friends_list = self.v.copy()
+        for index, friend in enumerate(_copy_request_friends_list, start=0):
+            if friend["email"] == friend_email:
+                self.request_friends_list.pop(index)
+                return self.do_save()
+        return jsonify({"error": "Refuse Friend Request List Failed"}), 400
+    
+    
+    def act_cancel_friend_waiting_list(self):
+        request_json = json.loads(request.data)
+        friend_email = request_json["user_email"]
+        _copy_waiting_list = self.waiting_friends_list.copy()
+        for index, friend in enumerate(_copy_waiting_list, start=0):
+            if friend["email"] == friend_email:
+                self.waiting_friends_list.pop(index)
+                return self.do_save()
+        return jsonify({"error": "Cancel Friend Waiting List Failed"}), 400
+    
+    
+    def act_add_friend_waiting_list(self):
+        request_json = json.loads(request.data)
+        friend_email = request_json["user_email"]
+        print(friend_email)
+        print(friend_email)
+        print(friend_email)
+        print(friend_email)
+        _friend = self.get_user_by_email(friend_email)
+        if _friend:
+            available, msg = self.check_available_friend_request(_friend.email)
+            if not available:
+                return jsonify({"error": msg}), 400
+            self.waiting_friends_list.append({'email' : _friend.email, 'pseudo' : _friend.pseudo})
+            _friend.request_friends_list.append({'email' : self.email, 'pseudo' : self.pseudo})
+            _friend.do_save()
+            return self.do_save()
+        else:
+            return jsonify({"error": "No user had this email address"}), 400
+    
+    def check_available_friend_request(self, _friend_email):
+        if self.email == _friend_email:
+            return False, "You cannot add yourself"
+        elif _friend_email in [user["email"] for user in self.friends_list]:
+            return False, "This user are in your friend list"
+        elif _friend_email in [user["email"] for user in self.waiting_friends_list]:
+            return False, "This user are in your waiting friend list"
+        elif _friend_email in [user["email"] for user in self.request_friends_list]:
+            return False, "This user are in your request friend list"
+        else:
+            return True, ""
+
     def get_user_by_id(self, _id):
         return User.objects(_id=_id).first()
+    
+    
+    def get_user_by_email(self, _email):
+        return User.objects(email=_email).first()
     
     
     def signout(self):
@@ -106,10 +214,11 @@ class User(db.Document):
                 break
             _index_player += 1
         if _break:
-            return self._save()
+            return self.do_save()
         else:
             return jsonify({"error": "Sell One Player Failed"}), 400
-
+    
+    
     def add_one_player(self):
         request_json = json.loads(request.data)
         name_player_to_add = request_json["add_one_player"]
@@ -122,7 +231,7 @@ class User(db.Document):
                     return jsonify({"error": "You already have this player"}), 400
                 self.players.append(player.to_json())
                 self.money = self.money - player.get_price()
-                return self._save()
+                return self.do_save()
         else:
             return jsonify({"error": "Add One Player Failed"}), 400
 
@@ -144,5 +253,6 @@ def multikeysort(items, columns):
             for fn, mult in comparers
         )
         return next((result for result in comparer_iter if result), 0)
+    
     
     return sorted(items, key=cmp_to_key(comparer))
