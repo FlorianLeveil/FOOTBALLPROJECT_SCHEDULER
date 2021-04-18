@@ -24,13 +24,14 @@ class User(db.Document):
     email = db.StringField()
     password = db.StringField()
     pseudo = db.StringField()
-    team = db.ListField()
+    my_team = db.DictField()
     friends_list = db.ListField()
     request_friends_list = db.ListField()
     waiting_friends_list = db.ListField()
     money = db.IntField()
     players = db.ListField()
     date_created = db.DateTimeField(default=datetime.utcnow())
+    players_selected_by_position = db.DictField()
     
     
     def register(self):
@@ -39,12 +40,13 @@ class User(db.Document):
         self.email = request_json["email"]
         self.password = pbkdf2_sha256.encrypt(request_json["password"])
         self.pseudo = request_json["pseudo"]
-        self.team = []
+        self.my_team = {'GK': '', 'LB': '', 'RB': '', 'CB': '', 'MC': '', 'LM': '', 'RM': '', 'CAM': '', 'LW': '', 'RW': '', 'ST': ''}
         self.friends_list = []
         self.request_friends_list = []
         self.waiting_friends_list = []
         self.money = 600000
         self.players = []
+        self.players_selected_by_position = {'GK': '', 'LB': '', 'RB': '', 'CB': '', 'MC': '', 'LM': '', 'RM': '', 'CAM': '', 'LW': '', 'RW': '', 'ST': ''}
         
         # Check for existing email address
         if User.objects(email=request_json["email"]):
@@ -65,7 +67,7 @@ class User(db.Document):
             return jsonify({"_list": self.friends_list}), 200
         else:
             return jsonify({"error": "You don't have any friends"}), 400
-
+    
     
     def get_waiting_friend_list(self):
         if self.waiting_friends_list:
@@ -79,7 +81,6 @@ class User(db.Document):
             return jsonify({"_list": self.request_friends_list}), 200
         else:
             return jsonify({"error": "You have no friend request"}), 400
-
     
     
     def act_rm_friend_friend_list(self):
@@ -101,10 +102,9 @@ class User(db.Document):
         for index, friend in enumerate(_copy_request_friends_list, start=0):
             if friend["email"] == friend_email:
                 self.request_friends_list.pop(index)
-                self.friends_list.append({'email' : _friend.email, 'pseudo' : _friend.pseudo})
+                self.friends_list.append({'email': _friend.email, 'pseudo': _friend.pseudo})
                 return self.do_save()
         return jsonify({"error": "Accept Friend Request List Failed"}), 400
-
     
     
     def act_refuse_friend_request_list(self):
@@ -132,21 +132,18 @@ class User(db.Document):
     def act_add_friend_waiting_list(self):
         request_json = json.loads(request.data)
         friend_email = request_json["user_email"]
-        print(friend_email)
-        print(friend_email)
-        print(friend_email)
-        print(friend_email)
         _friend = self.get_user_by_email(friend_email)
         if _friend:
             available, msg = self.check_available_friend_request(_friend.email)
             if not available:
                 return jsonify({"error": msg}), 400
-            self.waiting_friends_list.append({'email' : _friend.email, 'pseudo' : _friend.pseudo})
-            _friend.request_friends_list.append({'email' : self.email, 'pseudo' : self.pseudo})
+            self.waiting_friends_list.append({'email': _friend.email, 'pseudo': _friend.pseudo})
+            _friend.request_friends_list.append({'email': self.email, 'pseudo': self.pseudo})
             _friend.do_save()
             return self.do_save()
         else:
             return jsonify({"error": "No user had this email address"}), 400
+    
     
     def check_available_friend_request(self, _friend_email):
         if self.email == _friend_email:
@@ -159,7 +156,8 @@ class User(db.Document):
             return False, "This user are in your request friend list"
         else:
             return True, ""
-
+    
+    
     def get_user_by_id(self, _id):
         return User.objects(_id=_id).first()
     
@@ -186,6 +184,31 @@ class User(db.Document):
         return jsonify({"money": self.money}), 200
     
     
+    def get_players_selected_by_position(self):
+        return jsonify({"players_selected_by_position": self.players_selected_by_position}), 200
+    
+    
+    def save_my_team(self):
+        request_json = json.loads(request.data)
+        _selected_players = request_json["_selected_players"]
+        print(_selected_players)
+        for key, value in _selected_players.items():
+            print([player['name'] for player in self.players])
+            print(key)
+            print(value)
+            if value in [player['name'] for player in self.players]:
+                if self.my_team[key] and value != self.my_team[key].name:
+                    self.my_team[key] = Player().get_one(value)
+                if self.players_selected_by_position[key] != value:
+                    self.players_selected_by_position[key] = value
+            elif value == "":
+                continue
+            else:
+                return jsonify({"error": "The players selected are not in list of my players."}), 401
+        
+        return self.do_save()
+    
+    
     def get_my_players(self, filters):
         _filters_true = []
         for key, value in filters.items():
@@ -199,6 +222,25 @@ class User(db.Document):
             return jsonify({"my_players": self.players}), 200
     
     
+    def get_one_of_my_players(self):
+        request_json = json.loads(request.data)
+        _selected_player = request_json["player_name"]
+        if True if _selected_player in [my_player["name"] for my_player in self.players] else False:
+            return jsonify({"player": player for player in self.players if player["name"] == _selected_player}), 200
+        else:
+            return jsonify({"error": "Get one player failed"}), 400
+    
+    
+    def remove_player_in_selected_list_and_team(self, player_name):
+        for key, value in self.players_selected_by_position.items():
+            if value == player_name:
+                self.players_selected_by_position[key] = ""
+        
+        for key, value in self.my_team.items():
+            if value == player_name:
+                self.my_team[key] = ""
+    
+    
     def sell_one_player(self):
         request_json = json.loads(request.data)
         name_player_to_add = request_json["sell_one_player"]
@@ -207,6 +249,8 @@ class User(db.Document):
         _break = False
         while _index_player <= _len_list_player:
             if name_player_to_add == self.players[_index_player]['name']:
+                if name_player_to_add in self.players_selected_by_position.values():
+                    self.remove_player_in_selected_list_and_team(name_player_to_add)
                 self.money += int(self.players[_index_player]['price'])
                 self.players.pop(_index_player)
                 self.save()

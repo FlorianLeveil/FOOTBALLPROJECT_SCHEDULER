@@ -34,6 +34,14 @@ def get_money():
     return user.get_money()
 
 
+@app.route('/user/get_players_selected_by_position')
+@jwt_required()
+def get_players_selected_by_position():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.get_players_selected_by_position()
+
+
 @app.route('/user/add_one_player', methods=['POST'])
 @jwt_required()
 def add_one_player():
@@ -48,6 +56,22 @@ def sell_one_player():
     current_user_id = get_jwt_identity()
     user = User().get_user_by_id(current_user_id)
     return user.sell_one_player()
+
+
+@app.route('/user/save_my_team', methods=['POST'])
+@jwt_required()
+def save_my_team():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.save_my_team()
+
+
+@app.route('/user/get_one_of_my_players', methods=['POST'])
+@jwt_required()
+def get_one_of_my_players():
+    current_user_id = get_jwt_identity()
+    user = User().get_user_by_id(current_user_id)
+    return user.get_one_of_my_players()
 
 
 @app.route('/user/get_my_players')
@@ -94,6 +118,7 @@ def get_request_friend_list():
     user = User().get_user_by_id(current_user_id)
     return user.get_request_friend_list()
 
+
 @app.route('/user/act_rm_friend_friend_list', methods=['POST'])
 @jwt_required()
 def act_rm_friend_friend_list():
@@ -132,4 +157,3 @@ def act_add_friend_waiting_list():
     current_user_id = get_jwt_identity()
     user = User().get_user_by_id(current_user_id)
     return user.act_add_friend_waiting_list()
-
