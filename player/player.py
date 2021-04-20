@@ -3,7 +3,10 @@
 #
 # Copyright (C) 2013-2021:
 # This file is part of LeveilFlorian Enterprise, all rights reserved.
-from scheduler import db
+import time
+
+from game.game import Game
+from scheduler import db, redis_client
 from flask import Flask, jsonify, request, json
 
 
@@ -141,6 +144,51 @@ class Player(db.Document):
 
 
 
+User_1_Player1 = Player().get_one('Anthony Lopes')
+User_1_Player2 = Player().get_one('Layvin Kurzawa')
+User_1_Player3 = Player().get_one('Fabinho')
+User_1_Player4 = Player().get_one('Marquinhos')
+User_1_Player5 = Player().get_one('Marco Verratti')
+User_1_Player6 = Player().get_one('Andre Ayew')
+User_1_Player7 = Player().get_one('Florian Thauvin')
+User_1_Player8 = Player().get_one('Nabil Fekir')
+User_1_Player9 = Player().get_one('Yannick Ferreira Carrasco')
+User_1_Player10 = Player().get_one('Lucas Ocampos')
+User_1_Player11 = Player().get_one('Alexandre Lacazette')
+
+team1 = {'GK': User_1_Player1, 'LB': User_1_Player2, 'RB': User_1_Player3, 'CB': User_1_Player4, 'MC': User_1_Player5, 'LM': User_1_Player6, 'RM': User_1_Player7, 'CAM': User_1_Player8, 'LW': User_1_Player9, 'RW': User_1_Player10, 'ST': User_1_Player11}
+
+
+User_2_Player1 = Player().get_one('Alphonse Areola')
+User_2_Player2 = Player().get_one('Lucas Digne')
+User_2_Player3 = Player().get_one('Serge Aurier')
+User_2_Player4 = Player().get_one('Aymen Abdennour')
+User_2_Player5 = Player().get_one('Geoffrey Kondogbia')
+User_2_Player6 = Player().get_one('Raphael Guerreiro')
+User_2_Player7 = Player().get_one('Bernardo Silva')
+User_2_Player8 = Player().get_one('Fares Bahlouli')
+User_2_Player9 = Player().get_one('Paul-Georges Ntep')
+User_2_Player10 = Player().get_one('Romain Hamouma')
+User_2_Player11 = Player().get_one('Anthony Martial')
+
+team2 = {'GK': User_2_Player1, 'LB': User_2_Player2, 'RB': User_2_Player3, 'CB': User_2_Player4, 'MC': User_2_Player5, 'LM': User_2_Player6, 'RM': User_2_Player7, 'CAM': User_2_Player8, 'LW': User_2_Player9, 'RW': User_2_Player10, 'ST': User_2_Player11}
+
+
+
+
+game = Game('toto', redis_client, '1', '2', team1, team2)
+game2 = Game('2', redis_client, 3, 4, team1, team2)
+game3 = Game('3', redis_client, 5, 6, team1, team2)
+game4 = Game('4', redis_client, 7, 8, team1, team2)
+
+game.start()
+# game4.start()
+# game2.start()
+# game3.start()
+
+while True:
+    print(redis_client.hgetall('toto'))
+    time.sleep(1)
 
 # player.name,
 # player.foot,
