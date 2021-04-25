@@ -7,16 +7,15 @@
 import json
 import uuid
 from _datetime import datetime
+from functools import cmp_to_key
+from operator import itemgetter as i
 
 from flask import jsonify, request, session
 from flask_jwt_extended import create_access_token
 from passlib.hash import pbkdf2_sha256
 
+from database import db
 from player.player import Player
-from scheduler import db
-
-from operator import itemgetter as i
-from functools import cmp_to_key
 
 
 class User(db.Document):
@@ -55,11 +54,22 @@ class User(db.Document):
         return self.do_save()
     
     
+    def get_player_instance():
+        return Player()
+    
+    
     def do_save(self):
         if self.save():
             return "", 200
         
         return jsonify({"error": "Signup failed"}), 400
+    
+    
+    def get_my_team(self):
+        for key, value in self.players_selected_by_position.items():
+            self.my_team[key] = Player().get_one(value)
+        self.save()
+        return self.my_team
     
     
     def get_friends_list(self):
@@ -175,8 +185,7 @@ class User(db.Document):
         user = User.objects(email=request_json["email"]).first()
         if user and pbkdf2_sha256.verify(request_json["password"], user.password):
             access_token = create_access_token(identity=user._id)
-            print(access_token)
-            return jsonify({"access_token": access_token}), 200
+            return jsonify({"access_token": access_token, "user_id": user._id}), 200
         return jsonify({"error": "Invalid login credentials"}), 401
     
     
@@ -191,11 +200,7 @@ class User(db.Document):
     def save_my_team(self):
         request_json = json.loads(request.data)
         _selected_players = request_json["_selected_players"]
-        print(_selected_players)
         for key, value in _selected_players.items():
-            print([player['name'] for player in self.players])
-            print(key)
-            print(value)
             if value in [player['name'] for player in self.players]:
                 if self.my_team[key] and value != self.my_team[key].name:
                     self.my_team[key] = Player().get_one(value)
@@ -214,7 +219,6 @@ class User(db.Document):
         for key, value in filters.items():
             if value:
                 _filters_true.append(key)
-        print(_filters_true)
         if _filters_true:
             _to_return = multikeysort(self.players, _filters_true)
             return jsonify({"my_players": _to_return}), 200

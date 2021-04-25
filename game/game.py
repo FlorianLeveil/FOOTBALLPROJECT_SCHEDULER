@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2013-2019:
- # This file is part of LeveilFlorian Enterprise, all rights reserved.
+# This file is part of LeveilFlorian Enterprise, all rights reserved.
 import random
 import threading
 import time
-
-lbl_list = ['GK', 'LB', 'RB', 'CB', 'MC', 'LM', 'RM', 'CAM', 'LW', 'RW', 'ST']
 
 
 class WEIGHT_ATTACK_STAT(object):
@@ -163,7 +161,7 @@ class ADVERSE_POSITION(object):
 
 
 class POSITION_GIVE_TO_POSITION(object):
-    GK = {'SHORT': ['LB', 'RB'], 'MEDIUM': ['MC', 'LM', 'RW'], 'LONG': ['CAM']}
+    GK = {'SHORT': ['LB', 'RB'], 'MEDIUM': ['MC', 'LM'], 'LONG': ['CAM']}
     LB = {'SHORT': ['CB'], 'MEDIUM': ['MC'], 'LONG': ['LM']}
     RB = {'SHORT': ['CB'], 'MEDIUM': ['MC'], 'LONG': ['RM']}
     CB = {'SHORT': ['MC'], 'MEDIUM': [''], 'LONG': ['LM', 'RM']}
@@ -206,7 +204,6 @@ class Game(threading.Thread):
         self.player1_have_ball = False
         self.player_with_ball_position = 'MC'
         self.time_match = 0
-        
         self.end = False
         self.winner = ""
         self.player1_score = 0
@@ -216,18 +213,18 @@ class Game(threading.Thread):
     
     def save(self):
         _save = {
-                    "end"                      : str(self.end),
-                    "winner"                   : str(self.winner),
-                    "time_match"               : str(self.time_match),
-                    "player_with_ball_position": str(self.player_with_ball_position),
-                    "player1_id"               : str(self.player1_id),
-                    "player2_id"               : str(self.player2_id),
-                    "player1_have_ball"        : str(self.player1_have_ball),
-                    "player1_score"            : str(self.player1_score),
-                    "player2_score"            : str(self.player2_score)
-                }
+            "end"                      : str(self.end),
+            "winner"                   : str(self.winner),
+            "time_match"               : str(self.time_match),
+            "player_with_ball_position": str(self.player_with_ball_position),
+            "player1_id"               : str(self.player1_id),
+            "player2_id"               : str(self.player2_id),
+            "player1_have_ball"        : str(self.player1_have_ball),
+            "player1_score"            : str(self.player1_score),
+            "player2_score"            : str(self.player2_score)
+        }
         
-        self.redis.hmset(str(self.game_id), _save)
+        self.redis.hmset(self.game_id, _save)
     
     
     def stop(self):
@@ -235,8 +232,9 @@ class Game(threading.Thread):
     
     
     def run(self):
-        self.running = True
         self.compute_which_player_start()
+        self.running = True
+        self.save()
         while self.running:
             self.save()
             time.sleep(1)
@@ -245,7 +243,6 @@ class Game(threading.Thread):
             self.set_position_after_action(_success_action, _position_to_give)
             self.time_match += 1
             if self.time_match == 90:
-                print(' GAME_ID ', self.game_id, ' POSITION ', self.player_with_ball_position, ' PLAYER1_HAVE_BALL ', self.player1_have_ball, ' SCORE_PLAYER_1', self.player1_score, ' SCORE_PLAYER_2 ', self.player2_score, ' TIME: ', self.time_match)
                 self.end = True
                 self.winner = self.compute_winner()
                 self.save()
@@ -271,7 +268,6 @@ class Game(threading.Thread):
         
         _can_short_pass, _can_medium_pass, _can_long_pass = self.compute_which_pass_is_possible(_dict_of_position_to_give)
         _type_of_pass_compute = self.compute_pass_type(_can_short_pass, _can_medium_pass, _can_long_pass, _weight_short_pass, _weight_long_pass)
-        print(_type_of_pass_compute)
         _position_to_return = random.choice(_dict_of_position_to_give[_type_of_pass_compute])
         return _position_to_return
     
@@ -405,8 +401,11 @@ class Game(threading.Thread):
                     self.player2_score += 1
                 self.player1_have_ball = not self.player1_have_ball
                 self.player_with_ball_position = 'MC'
+                self.save()
+                time.sleep(4)
             else:
                 self.player_with_ball_position = position_to_give
+        
         else:
             self.player1_have_ball = not self.player1_have_ball
             self.player_with_ball_position = getattr(ADVERSE_POSITION, self.player_with_ball_position)
