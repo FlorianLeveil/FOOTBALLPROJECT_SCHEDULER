@@ -4,9 +4,10 @@
 
 1. Cloner le repo
 2. Installer les requirements via pip: "pip install -r requirements.txt"
-3. Démarrer un serveur MongoDB sur 127.0.0.1:27017
-4. Exécuter le script pour avoir tout les joueurs en BDD: "sudo python3 ./player/script_make_players.py"
-5. Démarrer le Scheduler en faisant "./run"
+3. Installer MongoDB et Redis
+4. Démarrer un serveur MongoDB sur 127.0.0.1:27017 et démarrer Redis.
+5. Exécuter le script pour avoir tout les joueurs en BDD: "sudo python3 ./player/script_make_players.py"
+6. Démarrer le Scheduler en faisant "./run"
 
 ## Screens
 
