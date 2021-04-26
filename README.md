@@ -10,7 +10,33 @@
 
 ## Screens
 
-![alt text](https://github.com/FlorianLeveil/FOOTBALLPROJECT_SCHEDULER/tree/main/screen_shoot/login.png?raw=true)
-![alt text](https://github.com/FlorianLeveil/FOOTBALLPROJECT_SCHEDULER/tree/main/screen_shoot/login.png)
+### Welcome
+![Screenshot](screen_shoot/welcome.png)
 
+### Register
+![Screenshot](screen_shoot/register.png)
+
+### Login
 ![Screenshot](screen_shoot/login.png)
+
+### Main
+![Screenshot](screen_shoot/Main.png)
+
+### Market
+* BUY
+![Screenshot](screen_shoot/buy.png)
+
+* SELL
+![Screenshot](screen_shoot/sell.png)
+
+### Friends
+![Screenshot](screen_shoot/friends.png)
+
+### My Team
+* GENERAL
+  
+![Screenshot](screen_shoot/my_team_general.png)
+  
+* SPECIFIC
+![Screenshot](screen_shoot/my_team_specific.png)
+
