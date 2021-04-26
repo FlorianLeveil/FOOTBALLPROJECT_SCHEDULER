@@ -52,10 +52,10 @@ class GameManager:
         return jsonify({"game": new_dict}), 200
     
     
-    def get_all_teams(self, player1_id, player2_id, team=_user_1.get_my_team()):
+    def get_all_teams(self, player1_id, player2_id):
         _user_1 = self.user.get_user_by_id(player1_id)
         _user_2 = self.user.get_user_by_id(player2_id)
-        _player_team1 = team
+        _player_team1 = _user_1.get_my_team()
         _player_team2 = _user_2.get_my_team()
         return jsonify({"team": {"team1": _player_team1, "team2": _player_team2}}), 200
     
