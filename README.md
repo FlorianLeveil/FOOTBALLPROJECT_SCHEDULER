@@ -20,7 +20,7 @@
 ![Screenshot](screen_shoot/login.png)
 
 ### Main
-![Screenshot](screen_shoot/Main.png)
+![Screenshot](screen_shoot/main.png)
 
 ### Market
 * BUY
@@ -34,9 +34,16 @@
 
 ### My Team
 * GENERAL
-  
 ![Screenshot](screen_shoot/my_team_general.png)
   
 * SPECIFIC
 ![Screenshot](screen_shoot/my_team_specific.png)
 
+### PLAY
+* PLAY VERSUS OPPONENT
+![Screenshot](screen_shoot/play_opponent.png)
+  
+
+### Match
+![Screenshot](screen_shoot/match.png)
+  
