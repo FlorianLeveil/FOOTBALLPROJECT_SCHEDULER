@@ -9,6 +9,9 @@
 5. Exécuter le script pour avoir tout les joueurs en BDD: "sudo python3 ./player/script_make_players.py"
 6. Démarrer le Scheduler en faisant "./run"
 
+Le serveur est lancé, plus qu'a lancer le client :)
+Pour cela RDV sur ce dépo: https://github.com/FlorianLeveil/FOOTBALLPROJECT_UI
+
 ## Screens
 
 ### Welcome
