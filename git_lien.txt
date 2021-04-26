@@ -1,0 +1,2 @@
+Lien Github vers le client UI (Exécutable pour linux disponible) https://github.com/FlorianLeveil/FOOTBALLPROJECT_UI
+Lien Github vers le scheduler (Serveur) https://github.com/FlorianLeveil/FOOTBALLPROJECT_SCHEDULER
